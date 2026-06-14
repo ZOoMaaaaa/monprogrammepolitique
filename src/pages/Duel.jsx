@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -16,6 +16,7 @@ export default function Duel() {
   const [result, setResult] = useState(null)
   const [voteError, setVoteError] = useState(null)
   const [exhausted, setExhausted] = useState(false)
+  const resultRef = useRef(null)
 
   const fetchPair = useCallback(async () => {
     setLoading(true)
@@ -83,6 +84,7 @@ export default function Duel() {
     } else {
       await refreshProfile()
       setResult({ winnerId, eloChange: data })
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
     }
     setVoting(false)
   }
@@ -149,7 +151,7 @@ export default function Duel() {
       )}
 
       {result && (
-        <div className="duel-result">
+        <div className="duel-result" ref={resultRef}>
           <p>Vote enregistré ! <strong>±{result.eloChange} pts de popularité</strong> échangés.</p>
           <button onClick={fetchPair}>Duel suivant →</button>
         </div>
