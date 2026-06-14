@@ -66,6 +66,7 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <div className="login-card">
       <h1>Mon Programme Politique</h1>
       <p>Présente ton programme en 6 points et affronte les autres candidats.</p>
 
@@ -149,6 +150,7 @@ export default function Login() {
           </button>
         )}
       </form>
+      </div>
     </div>
   )
 }
