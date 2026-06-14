@@ -2162,6 +2162,91 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
   gap: 4px;
 }
 
+/* ── Page Règles ── */
+.rules-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.rules-page h1 {
+  font-family: var(--heading);
+  font-size: 32px;
+  color: var(--text-h);
+  text-align: center;
+  margin: 0;
+}
+
+.rules-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+}
+
+.rules-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.rules-section h2 {
+  font-family: var(--heading);
+  font-size: 20px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.rules-section p {
+  color: var(--text);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.rules-section ul {
+  color: var(--text);
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.rules-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rules-level-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+}
+
+.rules-level-title {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.rules-level-elo {
+  font-size: 13px;
+  color: var(--bleu);
+  font-weight: 600;
+}
+
 /* ── Footer ── */
 .footer {
   position: fixed;

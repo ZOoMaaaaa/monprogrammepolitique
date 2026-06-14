@@ -18,6 +18,7 @@ export default function NavBar() {
       <div className="navbar-center">
         <button className="navbar-link" onClick={() => navigate('/')}>Accueil</button>
         <button className="navbar-link" onClick={() => navigate('/classement')}>Classement</button>
+        <button className="navbar-link" onClick={() => navigate('/regles')}>Règles</button>
       </div>
 
       <div className="navbar-right">

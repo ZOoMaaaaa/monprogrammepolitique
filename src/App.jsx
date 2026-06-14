@@ -13,6 +13,7 @@ import Leaderboard from './pages/Leaderboard'
 import ProfilePage from './pages/ProfilePage'
 import LegalPage from './pages/LegalPage'
 import ResetPassword from './pages/ResetPassword'
+import RulesPage from './pages/RulesPage'
 import CookieBanner from './components/CookieBanner'
 
 function AppRoutes() {
@@ -73,6 +74,7 @@ function AppRoutes() {
           <Route path="/programme/modifier" element={<ProgramForm />} />
           <Route path="/duel" element={<Duel />} />
           <Route path="/classement" element={<Leaderboard />} />
+          <Route path="/regles" element={<RulesPage />} />
           <Route path="/profil/:id" element={<ProfilePage />} />
           <Route path="/legal/:section" element={<LegalPage />} />
           {profile?.is_admin && <Route path="/admin" element={<Admin />} />}
