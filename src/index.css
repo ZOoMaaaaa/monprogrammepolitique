@@ -350,22 +350,137 @@ p { margin: 0; }
   pointer-events: none;
 }
 
-.login-card {
+/* ── Flip card ── */
+.flip-card {
+  perspective: 1400px;
+  width: 100%;
+  max-width: 480px;
   position: relative;
   z-index: 1;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 480px;
+  transform-style: preserve-3d;
+  transition: transform 0.75s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-card-front {
+  z-index: 2;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+.login-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   width: 100%;
-  max-width: 480px;
   background: rgba(0, 10, 60, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 16px;
   padding: 44px 40px 40px;
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 48px rgba(0, 0, 0, 0.45);
+  color: #fff;
 }
+
+/* Face avant */
+.login-front-label {
+  font-family: var(--heading);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rouge);
+  text-align: center;
+}
+
+.login-front-title {
+  font-family: var(--heading);
+  font-size: 44px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  margin: 0;
+  text-align: center;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+}
+
+.login-front-sub {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+}
+
+.login-front-hooks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.login-front-hooks p {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.login-front-hooks p:last-child { border-bottom: none; }
+
+.login-cta {
+  width: 100%;
+  padding: 14px;
+  background: var(--rouge);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.login-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* Bouton retour face arrière */
+.flip-back-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+  margin-bottom: -8px;
+}
+.flip-back-btn:hover { color: #fff; }
 
 .login-page h1 {
   font-size: 40px;
@@ -464,7 +579,7 @@ p { margin: 0; }
   color: var(--bleu);
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
-.login-page p, .setup-page > p { color: var(--text); font-size: 15px; }
+.setup-page > p { color: var(--text); font-size: 15px; }
 
 form { display: flex; flex-direction: column; gap: 16px; width: 100%; }
 
