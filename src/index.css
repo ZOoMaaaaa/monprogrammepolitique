@@ -378,29 +378,14 @@ p { margin: 0; }
   width: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  /* Firefox : backdrop-filter dans un contexte preserve-3d casse backface-visibility,
-     les deux faces se superposent. On masque donc la face inactive via opacity
-     (toujours respectée), bascule à mi-rotation (0.375s = moitié de la transition). */
-  transition: opacity 0s linear 0.375s;
 }
 
 .flip-card-front {
   z-index: 2;
-  opacity: 1;
 }
 
 .flip-card-back {
   transform: rotateY(180deg);
-  opacity: 0;
-}
-
-.flip-card.flipped .flip-card-front {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.flip-card.flipped .flip-card-back {
-  opacity: 1;
 }
 
 .login-card {
@@ -409,11 +394,12 @@ p { margin: 0; }
   align-items: center;
   gap: 24px;
   width: 100%;
-  background: rgba(0, 10, 60, 0.55);
+  /* Pas de backdrop-filter ici : le flou dans un contexte preserve-3d casse le
+     flip 3D sur Firefox. Fond plus opaque pour garder la lisibilité sans flou. */
+  background: rgba(0, 10, 60, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 16px;
   padding: 44px 40px 40px;
-  backdrop-filter: blur(20px);
   box-shadow: 0 8px 48px rgba(0, 0, 0, 0.45);
   color: #fff;
 }
