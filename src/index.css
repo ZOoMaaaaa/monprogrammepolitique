@@ -378,14 +378,29 @@ p { margin: 0; }
   width: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* Firefox : backdrop-filter dans un contexte preserve-3d casse backface-visibility,
+     les deux faces se superposent. On masque donc la face inactive via opacity
+     (toujours respectée), bascule à mi-rotation (0.375s = moitié de la transition). */
+  transition: opacity 0s linear 0.375s;
 }
 
 .flip-card-front {
   z-index: 2;
+  opacity: 1;
 }
 
 .flip-card-back {
   transform: rotateY(180deg);
+  opacity: 0;
+}
+
+.flip-card.flipped .flip-card-front {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flip-card.flipped .flip-card-back {
+  opacity: 1;
 }
 
 .login-card {
