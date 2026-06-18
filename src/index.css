@@ -364,7 +364,9 @@ p { margin: 0; }
   width: 100%;
   min-height: 480px;
   transform-style: preserve-3d;
-  transition: transform 0.75s cubic-bezier(0.4, 0.2, 0.2, 1);
+  /* easing symétrique : à mi-durée (0.375s) la carte est pile à 90° (de profil),
+     ce qui permet de permuter les faces de façon invisible. */
+  transition: transform 0.75s ease-in-out;
 }
 
 .flip-card.flipped .flip-card-inner {
@@ -378,14 +380,29 @@ p { margin: 0; }
   width: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* Firefox n'honore pas backface-visibility dans ce contexte : on masque la face
+     inactive via opacity. Bascule instantanée à 0.375s = mi-rotation (= 90°, de
+     profil), donc invisible et fluide grâce à l'easing symétrique. */
+  transition: opacity 0s linear 0.375s;
 }
 
 .flip-card-front {
   z-index: 2;
+  opacity: 1;
 }
 
 .flip-card-back {
   transform: rotateY(180deg);
+  opacity: 0;
+}
+
+.flip-card.flipped .flip-card-front {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flip-card.flipped .flip-card-back {
+  opacity: 1;
 }
 
 .login-card {
