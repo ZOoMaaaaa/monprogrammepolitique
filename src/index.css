@@ -88,7 +88,7 @@ body::before {
   max-width: 1060px;
   width: 100%;
   margin: 0 auto;
-  padding: 48px 20px 112px;
+  padding: 48px 20px 64px;
 }
 
 /* ── Navbar ── */
@@ -2267,10 +2267,7 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
 
 /* ── Footer ── */
 .footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   z-index: 10;
   background: var(--bleu);
   border-top: 4px solid var(--rouge);
@@ -2501,5 +2498,4 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
 @media (max-width: 599px) {
   .footer-top   { flex-wrap: wrap; justify-content: center; text-align: center; gap: 6px; }
   .footer-links { flex-wrap: wrap; justify-content: center; gap: 8px; }
-  .main-content { padding-bottom: 140px; }
 }
