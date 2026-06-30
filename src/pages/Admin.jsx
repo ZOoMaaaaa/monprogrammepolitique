@@ -10,6 +10,7 @@ export default function Admin() {
   const [confirmReset, setConfirmReset] = useState(null)
   const [tab, setTab] = useState('moderation')
   const [search, setSearch] = useState('')
+  const [aiNotice, setAiNotice] = useState(null)
 
   useEffect(() => {
     Promise.all([fetchPending(), fetchUsers()]).then(() => setLoading(false))
@@ -40,8 +41,27 @@ export default function Admin() {
 
   async function approve(id) {
     await supabase.from('programs').update({ status: 'approved', rejection_reason: null }).eq('id', id)
-    supabase.functions.invoke('generate-ai-context', { body: { program_id: id } })
     setPrograms((prev) => prev.filter((p) => p.id !== id))
+    setAiNotice({ type: 'info', text: 'Programme approuvé. Génération du contexte IA en cours…' })
+
+    const { data, error } = await supabase.functions.invoke('generate-ai-context', { body: { program_id: id } })
+
+    if (error) {
+      console.error('generate-ai-context a échoué :', error)
+      setAiNotice({
+        type: 'error',
+        text: `Programme approuvé, mais la génération du contexte IA a échoué : ${error.message ?? error}. Vérifie que la fonction « generate-ai-context » est déployée et que la clé Groq est valide.`,
+      })
+      return
+    }
+
+    const ok = (data?.results ?? []).filter((r) => r.ok && r.hasExample !== false).length
+    const total = (data?.results ?? []).length
+    console.log('generate-ai-context résultat :', data)
+    setAiNotice({
+      type: 'success',
+      text: `Programme approuvé. Contexte IA généré pour ${ok}/${total || '?'} réforme(s).`,
+    })
   }
 
   async function reject(program) {
@@ -88,6 +108,11 @@ export default function Admin() {
 
       {tab === 'moderation' && (
         <div className="program-list">
+          {aiNotice && (
+            <p className={aiNotice.type === 'error' ? 'error' : aiNotice.type === 'success' ? 'success' : 'empty'}>
+              {aiNotice.text}
+            </p>
+          )}
           {programs.length === 0
             ? <p className="empty">Aucun programme en attente.</p>
             : <p>{programs.length} programme(s) en attente de validation.</p>

@@ -8,9 +8,11 @@ async function callGroq(key: string, prompt: string, attempt = 0): Promise<strin
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      // Llama 3.3 70B Versatile a été déprécié par Groq (décommission le 16/08/2026).
+      // Remplacement recommandé : GPT OSS 120B.
+      model: 'openai/gpt-oss-120b',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 150,
+      max_tokens: 512,
     }),
   })
 
@@ -23,7 +25,12 @@ async function callGroq(key: string, prompt: string, attempt = 0): Promise<strin
     return callGroq(key, prompt, attempt + 1)
   }
 
-  if (!res.ok) return null
+  if (!res.ok) {
+    // Visible dans les logs Supabase (Functions → generate-ai-context) pour
+    // diagnostiquer rapidement une future dépréciation/erreur de clé Groq.
+    console.error('Groq error', res.status, JSON.stringify(json?.error ?? json))
+    return null
+  }
 
   return json.choices?.[0]?.message?.content?.trim() ?? null
 }
