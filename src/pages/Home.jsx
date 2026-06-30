@@ -1,71 +1,84 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { getLevel, LEVELS } from '../lib/levels'
 import { CAT_COLORS } from '../lib/categories'
 
-const STATUS_LABELS = {
-  pending:  { label: 'En attente de modération', className: 'pending' },
-  approved: { label: 'Approuvé', className: 'approved' },
-  rejected: { label: 'Refusé', className: 'rejected' },
-}
-
-function LevelProgress({ elo }) {
-  const current = getLevel(elo)
-  const nextLevel = LEVELS.find((l) => l.level === current.level + 1)
-
-  if (!nextLevel) {
-    return (
-      <div className="level-progress">
-        <div className="level-progress-label">
-          <span className="level-title">{current.title}</span>
-          <span className="level-max">Niveau maximum atteint 🏆</span>
-        </div>
-      </div>
-    )
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
   }
-
-  const from = current.minElo
-  const to = nextLevel.minElo
-  const pct = Math.round(((elo - from) / (to - from)) * 100)
-
-  return (
-    <div className="level-progress">
-      <div className="level-progress-label">
-        <span className="level-title">{current.title}</span>
-        <span className="level-next">→ {nextLevel.title} ({to - elo} pts)</span>
-      </div>
-      <div className="level-bar-track">
-        <div className="level-bar-fill" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  )
+  return a
 }
 
 export default function Home() {
-  const { profile } = useAuth()
+  const { user, guest, exitGuest } = useAuth()
   const navigate = useNavigate()
-  const [program, setProgram] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [programOpen, setProgramOpen] = useState(false)
+
+  const poolRef = useRef([])              // ids éligibles pas encore affichés
+  const [poolCount, setPoolCount] = useState(0) // miroir de poolRef.length pour le rendu
+  const [reforms, setReforms] = useState([]) // réformes déjà chargées (historique)
+  const [index, setIndex] = useState(0)
+  const [initLoading, setInitLoading] = useState(true)
+  const [fetching, setFetching] = useState(false)
+
+  async function loadReform(id) {
+    const { data } = await supabase
+      .from('program_points')
+      .select('id, category, title, ai_context')
+      .eq('id', id)
+      .single()
+    return data
+  }
 
   useEffect(() => {
-    async function fetchProgram() {
+    async function init() {
+      // On ne récupère que la liste d'identifiants : le contenu se charge au clic.
       const { data } = await supabase
-        .from('programs')
-        .select('id, status, rejection_reason, program_points(order, category, title)')
-        .eq('user_id', profile.id)
-        .single()
-      setProgram(data)
-      setLoading(false)
+        .from('program_points')
+        .select('id, programs!inner(status)')
+        .eq('programs.status', 'approved')
+        .not('ai_context', 'is', null)
+        .limit(500)
+
+      const ids = shuffle((data ?? []).map((d) => d.id))
+      if (ids.length) {
+        const first = await loadReform(ids[0])
+        poolRef.current = ids.slice(1)
+        setPoolCount(poolRef.current.length)
+        if (first) setReforms([first])
+      }
+      setInitLoading(false)
     }
-    fetchProgram()
-  }, [profile.id])
+    init()
+  }, [])
 
-  if (loading) return null
+  const current = reforms[index]
+  const hasPrev = index > 0
+  const hasNext = index < reforms.length - 1 || poolCount > 0
 
-  const points = [...(program?.program_points ?? [])].sort((a, b) => a.order - b.order)
+  function prev() {
+    if (index > 0) setIndex(index - 1)
+  }
+
+  async function next() {
+    // Déjà chargée dans l'historique : on avance sans refetch.
+    if (index < reforms.length - 1) { setIndex(index + 1); return }
+    if (fetching || poolRef.current.length === 0) return
+    setFetching(true)
+    const nextId = poolRef.current.shift()
+    setPoolCount(poolRef.current.length)
+    const r = await loadReform(nextId)
+    setFetching(false)
+    if (r) {
+      setReforms((prevReforms) => [...prevReforms, r])
+      setIndex(reforms.length)
+    }
+  }
+
+  const color = current ? (CAT_COLORS[current.category] ?? 'var(--bleu)') : 'var(--bleu)'
 
   return (
     <div className="home-page">
@@ -73,125 +86,64 @@ export default function Home() {
         <p className="home-intro-label">Plateforme citoyenne participative</p>
         <h2 className="home-intro-title">La démocratie,<br />c'est toi.</h2>
         <p className="home-intro-text">
-          Présente ton programme en 6 propositions, affronte les autres candidats en duel
-          et grimpe dans le classement national.
+          Découvre les réformes proposées par les candidats, vote en duel pour celles
+          qui te convainquent, et grimpe dans le classement national.
         </p>
-      </div>
 
-      {/* Affiche candidat */}
-      <div className="campaign-hero">
-        <h1 className="campaign-name">{profile.username}</h1>
-        {profile.slogan && <p className="campaign-slogan">« {profile.slogan} »</p>}
-
-        <div className="campaign-stats">
-          <div className="campaign-stat">
-            <span className="campaign-stat-val">{profile.elo}</span>
-            <span className="campaign-stat-lbl">Popularité</span>
-          </div>
-          <div className="campaign-stat-divider" />
-          <div className="campaign-stat">
-            <span className="campaign-stat-val">{profile.duels_played}</span>
-            <span className="campaign-stat-lbl">Duels</span>
-          </div>
-          <div className="campaign-stat-divider" />
-          <div className="campaign-stat">
-            <span className="campaign-stat-val">{profile.duels_won}</span>
-            <span className="campaign-stat-lbl">Victoires</span>
-          </div>
-          <div className="campaign-stat-divider" />
-          <div className="campaign-stat">
-            <span className="campaign-stat-val">{profile.vote_points ?? 0}</span>
-            <span className="campaign-stat-lbl">Votes</span>
-          </div>
-        </div>
-
-        <div style={{ width: '100%' }}>
-          <LevelProgress elo={profile.elo} />
+        <div className="home-cta-row">
+          <button className="home-cta-primary" onClick={() => navigate('/duel')}>
+            ⚔️ Participer aux duels
+          </button>
+          {user ? (
+            <button className="home-cta-secondary" onClick={() => navigate('/programme/creer')}>
+              Rédiger mon programme
+            </button>
+          ) : guest ? (
+            <button className="home-cta-secondary" onClick={exitGuest}>
+              Créer un compte
+            </button>
+          ) : null}
         </div>
       </div>
 
-      {/* Bouton duel remonté */}
-      {program?.status === 'approved' && (
-        <button className="duel-btn" onClick={() => navigate('/duel')}>
-          ⚔️ Participer aux duels
-        </button>
-      )}
-
-      {/* Motif de refus */}
-      {program?.status === 'rejected' && program.rejection_reason && (
-        <div className="rejection-banner">
-          <strong>Programme refusé —</strong> {program.rejection_reason}
-        </div>
-      )}
-
-      {/* Programme accordéon */}
-      <div className="accordion">
-        <button className="accordion-header" onClick={() => setProgramOpen((o) => !o)}>
-          <div className="accordion-title">
-            <h2>Mon programme</h2>
-            {program && (
-              <span className={`status-badge ${STATUS_LABELS[program.status].className}`}>
-                {STATUS_LABELS[program.status].label}
-              </span>
-            )}
-          </div>
-          <div className="accordion-right">
-            {program?.status === 'rejected' && (
-              <button
-                className="edit-btn"
-                onClick={(e) => { e.stopPropagation(); navigate('/programme/modifier') }}
-              >
-                Modifier
-              </button>
-            )}
-            <span className="accordion-chevron">{programOpen ? '▲' : '▼'}</span>
-          </div>
-        </button>
-
-        {programOpen && (
-          <div className="accordion-body">
-            {!program ? (
-              <div className="no-program">
-                <div className="no-program-icon">📋</div>
-                <h2>Aucun programme</h2>
-                <p>Présente tes 6 propositions et entre dans l'arène !</p>
-                <button onClick={() => navigate('/programme/creer')}>
-                  Rédiger mon programme
-                </button>
-              </div>
-            ) : (
-              <>
-                <ol className="campaign-points">
-                  {points.map((pt, i) => (
-                    <li key={pt.order} className="campaign-point">
-                      <span
-                        className="campaign-num"
-                        style={{ color: CAT_COLORS[pt.category] ?? 'var(--bleu)' }}
-                      >
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <div className="campaign-point-body">
-                        <span
-                          className="category"
-                          style={{ color: CAT_COLORS[pt.category] ?? 'var(--bleu)' }}
-                        >
-                          {pt.category}
-                        </span>
-                        <strong>{pt.title}</strong>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </>
-            )}
-          </div>
-        )}
+      <div className="showcase-head">
+        <h2>Quelques réformes proposées</h2>
+        <p className="section-sub">Un aperçu anonyme des programmes des candidats, avec un éclairage de l'IA.</p>
       </div>
 
-      {profile.is_admin && (
-        <button className="admin-link" onClick={() => navigate('/admin')}>
-          🛡️ Panel de modération
-        </button>
+      {initLoading ? (
+        <p className="empty">Chargement des réformes...</p>
+      ) : !current ? (
+        <p className="empty">Aucune réforme à présenter pour l'instant. Reviens bientôt !</p>
+      ) : (
+        <div className="reform-carousel">
+          <button
+            className="reform-carousel-arrow"
+            aria-label="Précédent"
+            onClick={prev}
+            disabled={!hasPrev}
+          >
+            ‹
+          </button>
+
+          <div className="reform-example-card">
+            <span className="category" style={{ color }}>{current.category}</span>
+            <p className="reform-example-title">« {current.title} »</p>
+            <div className="reform-example-ai">
+              <span className="ai-context-label">Éclairage IA · Exemple mondial</span>
+              <p className="ai-context-text">{current.ai_context}</p>
+            </div>
+          </div>
+
+          <button
+            className="reform-carousel-arrow"
+            aria-label="Suivant"
+            onClick={next}
+            disabled={!hasNext || fetching}
+          >
+            {fetching ? '…' : '›'}
+          </button>
+        </div>
       )}
     </div>
   )

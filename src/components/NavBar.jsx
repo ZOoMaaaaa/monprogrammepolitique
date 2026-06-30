@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { getLevel } from '../lib/levels'
 
 export default function NavBar() {
-  const { profile } = useAuth()
+  const { profile, guest, exitGuest } = useAuth()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const level = getLevel(profile?.elo ?? 1000)
@@ -24,6 +24,7 @@ export default function NavBar() {
 
       <div className="navbar-center">
         <button className="navbar-link" onClick={() => go('/')}>Accueil</button>
+        <button className="navbar-link" onClick={() => go('/duel')}>Duels</button>
         <button className="navbar-link" onClick={() => go('/classement')}>Classement</button>
         <button className="navbar-link" onClick={() => go('/regles')}>Règles</button>
       </div>
@@ -32,13 +33,18 @@ export default function NavBar() {
         {profile && (
           <>
             <div className="navbar-level">{level.title}</div>
-            <button className="navbar-avatar" onClick={() => go('/')}>
+            <button className="navbar-avatar" onClick={() => go(`/profil/${profile.id}`)}>
               <span>{profile.username}</span>
             </button>
             <button className="navbar-logout" onClick={() => supabase.auth.signOut()}>
               Déconnexion
             </button>
           </>
+        )}
+        {guest && (
+          <button className="navbar-login" onClick={exitGuest}>
+            Se connecter
+          </button>
         )}
         <button
           className="navbar-burger"
@@ -53,8 +59,17 @@ export default function NavBar() {
       {menuOpen && (
         <div className="navbar-mobile-menu">
           <button className="navbar-mobile-link" onClick={() => go('/')}>Accueil</button>
+          <button className="navbar-mobile-link" onClick={() => go('/duel')}>Duels</button>
           <button className="navbar-mobile-link" onClick={() => go('/classement')}>Classement</button>
           <button className="navbar-mobile-link" onClick={() => go('/regles')}>Règles</button>
+          {profile && (
+            <button className="navbar-mobile-link" onClick={() => go(`/profil/${profile.id}`)}>Mon profil</button>
+          )}
+          {guest && (
+            <button className="navbar-mobile-link" onClick={() => { setMenuOpen(false); exitGuest() }}>
+              Se connecter
+            </button>
+          )}
         </div>
       )}
     </nav>

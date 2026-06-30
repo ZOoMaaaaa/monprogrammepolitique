@@ -200,6 +200,19 @@ body::before {
 }
 .navbar-logout:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
+.navbar-login {
+  background: var(--rouge);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.navbar-login:hover { opacity: 0.88; }
+
 /* ── Avatars ── */
 .avatar {
   width: 52px;
@@ -485,6 +498,21 @@ p { margin: 0; }
 }
 .login-cta:hover { opacity: 0.88; transform: translateY(-1px); }
 
+.login-explore {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  background: none;
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.login-explore:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
 /* Bouton retour face arrière */
 .flip-back-btn {
   align-self: flex-start;
@@ -703,7 +731,7 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
 .home-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 28px;
 }
 
 /* ── Intro home ── */
@@ -712,22 +740,22 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 24px 0 8px;
+  gap: 18px;
+  padding: 32px 0 12px;
 }
 
 .home-intro-label {
   font-family: var(--heading);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 3.5px;
   text-transform: uppercase;
   color: var(--rouge);
 }
 
 .home-intro-title {
   font-family: var(--heading);
-  font-size: 48px;
+  font-size: clamp(2rem, 7vw, 4.25rem);
   font-weight: 700;
   color: var(--text-h);
   text-transform: uppercase;
@@ -738,9 +766,9 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
 
 .home-intro-text {
   color: var(--text);
-  font-size: 15px;
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
   line-height: 1.7;
-  max-width: 440px;
+  max-width: 560px;
 }
 
 /* ── Accordéon programme ── */
@@ -1575,6 +1603,104 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
   line-height: 1.5;
 }
 
+/* ── Vitrine de réformes (accueil) ── */
+.home-cta-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 24px;
+}
+.home-cta-primary {
+  padding: 16px 30px;
+  background: var(--rouge);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.home-cta-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.home-cta-secondary {
+  padding: 16px 30px;
+  background: transparent;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.home-cta-secondary:hover { background: var(--accent-bg); }
+
+.showcase-head { text-align: center; margin-bottom: 6px; }
+.showcase-head h2 { font-size: clamp(1.4rem, 3.5vw, 1.9rem); margin: 0; }
+.section-sub {
+  margin: 8px auto 22px;
+  max-width: 600px;
+  color: var(--text);
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+}
+
+.reform-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.reform-carousel-arrow {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+.reform-carousel-arrow:hover:not(:disabled) { background: var(--accent-bg); transform: translateY(-1px); }
+.reform-carousel-arrow:disabled { opacity: 0.3; cursor: default; }
+
+.reform-example-card {
+  flex: 1 1 560px;
+  max-width: 560px;
+  min-height: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+.reform-example-card .category {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.reform-example-title {
+  margin: 10px 0 0;
+  font-size: clamp(1.25rem, 2.8vw, 1.55rem);
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.4;
+}
+.reform-example-ai {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.reform-example-ai .ai-context-label { font-size: 0.82rem; }
+.reform-example-ai .ai-context-text { font-size: 1rem; }
+
 /* Actions */
 .duel-card-actions {
   display: flex;
@@ -1641,6 +1767,18 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
   transition: opacity 0.15s;
 }
 .duel-result button:hover { opacity: 0.88; }
+
+.duel-result-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.duel-result button.duel-result-secondary {
+  background: none;
+  color: var(--bleu);
+  border: 1px solid var(--accent-border);
+}
 
 /* Épuisé */
 .duel-exhausted {
@@ -2469,11 +2607,19 @@ button[type="submit"]:hover:not(:disabled) { opacity: 0.88; }
 
 /* Typographie : réduire les grands titres sur mobile */
 @media (max-width: 480px) {
-  .home-intro-title { font-size: 28px; letter-spacing: 0.5px; }
+  .home-intro-title { letter-spacing: 0.5px; }
   .form-hook-title  { font-size: 30px; letter-spacing: 0; }
   .campaign-name    { font-size: 24px; letter-spacing: 1px; overflow-wrap: break-word; }
   .duel-hero h1     { font-size: 28px; }
   .duel-hero p      { font-size: 16px; }
+}
+
+/* Carrousel de réformes : resserrer flèches et carte sur petit écran */
+@media (max-width: 560px) {
+  .reform-carousel { gap: 6px; }
+  .reform-carousel-arrow { width: 40px; height: 40px; font-size: 24px; }
+  .reform-example-card { padding: 22px; min-height: 320px; }
+  .home-cta-primary, .home-cta-secondary { padding: 14px 22px; font-size: 16px; }
 }
 
 /* Programme : numéros plus compacts sur mobile */

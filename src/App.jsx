@@ -17,12 +17,34 @@ import RulesPage from './pages/RulesPage'
 import CookieBanner from './components/CookieBanner'
 
 function AppRoutes() {
-  const { user, profile, loading, isRecovery } = useAuth()
+  const { user, profile, loading, isRecovery, guest } = useAuth()
 
   if (loading) return null
 
   if (isRecovery) {
     return <ResetPassword />
+  }
+
+  if (!user && guest) {
+    return (
+      <div className="app-layout">
+        <img src="/mariannebleue.PNG" className="marianne-fixed left" alt="" />
+        <img src="/mariannerouge.PNG" className="marianne-fixed right" alt="" />
+        <NavBar />
+        <main className="main-content app-main">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/duel" element={<Duel />} />
+            <Route path="/classement" element={<Leaderboard />} />
+            <Route path="/regles" element={<RulesPage />} />
+            <Route path="/profil/:id" element={<ProfilePage />} />
+            <Route path="/legal/:section" element={<LegalPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   if (!user) {

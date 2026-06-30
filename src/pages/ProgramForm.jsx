@@ -41,7 +41,7 @@ export default function ProgramForm() {
 
       if (data) {
         if (data.status === 'approved' || data.status === 'pending') {
-          navigate('/')
+          navigate(`/profil/${profile.id}`)
           return
         }
         setExistingProgramId(data.id)
@@ -86,7 +86,7 @@ export default function ProgramForm() {
 
     if (pointsError) { setError(pointsError.message); setLoading(false); return }
 
-    navigate('/')
+    navigate(`/profil/${profile.id}`)
   }
 
   return (

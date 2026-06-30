@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isRecovery, setIsRecovery] = useState(false)
+  const [guest, setGuest] = useState(() => sessionStorage.getItem('guest') === '1')
 
   async function fetchProfile(userId) {
     const { data } = await supabase
@@ -18,11 +19,21 @@ export function AuthProvider({ children }) {
     setProfile(data)
   }
 
+  function continueAsGuest() {
+    sessionStorage.setItem('guest', '1')
+    setGuest(true)
+  }
+
+  function exitGuest() {
+    sessionStorage.removeItem('guest')
+    setGuest(false)
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
-      if (u) await fetchProfile(u.id)
+      if (u) { exitGuest(); await fetchProfile(u.id) }
       setLoading(false)
     })
 
@@ -36,7 +47,7 @@ export function AuthProvider({ children }) {
       }
       const u = session?.user ?? null
       setUser(u)
-      if (u) await fetchProfile(u.id)
+      if (u) { exitGuest(); await fetchProfile(u.id) }
       else setProfile(null)
     })
 
@@ -48,7 +59,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, refreshProfile, isRecovery }}>
+    <AuthContext.Provider value={{ user, profile, loading, refreshProfile, isRecovery, guest, continueAsGuest, exitGuest }}>
       {children}
     </AuthContext.Provider>
   )

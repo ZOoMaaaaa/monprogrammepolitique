@@ -20,13 +20,16 @@ export default function Leaderboard() {
   const [friendResults, setFriendResults] = useState([])
   const [friendSearching, setFriendSearching] = useState(false)
 
+  const profileId = profile?.id
+
   const fetchFriends = useCallback(async () => {
+    if (!profileId) { setFriends(new Set()); return }
     const { data } = await supabase
       .from('friendships')
       .select('friend_id')
-      .eq('user_id', profile.id)
+      .eq('user_id', profileId)
     setFriends(new Set((data ?? []).map((f) => f.friend_id)))
-  }, [profile.id])
+  }, [profileId])
 
   const fetchGlobal = useCallback(async () => {
     const { data } = await supabase
@@ -74,11 +77,11 @@ export default function Leaderboard() {
   )
 
   const friendRows = rows
-    .filter((r) => r.id === profile.id || friends.has(r.id))
+    .filter((r) => (profile && r.id === profile.id) || friends.has(r.id))
     .sort((a, b) => b.elo - a.elo)
 
   const displayRows = tab === 'global' ? globalFiltered : friendRows
-  const userRank = rows.findIndex((r) => r.id === profile.id) + 1
+  const userRank = profile ? rows.findIndex((r) => r.id === profile.id) + 1 : 0
 
   return (
     <div className="leaderboard-page">
@@ -86,17 +89,23 @@ export default function Leaderboard() {
 
       <div className="leaderboard-hero">
         <h1>Classement</h1>
-        <p>Ta position : <strong>#{userRank || '—'}</strong> sur {rows.length} candidats</p>
+        {profile ? (
+          <p>Ta position : <strong>#{userRank || '—'}</strong> sur {rows.length} candidats</p>
+        ) : (
+          <p>{rows.length} candidats en lice</p>
+        )}
       </div>
 
-      <div className="admin-tabs">
-        <button className={tab === 'global' ? 'active' : ''} onClick={() => setTab('global')}>
-          🌍 Top 100
-        </button>
-        <button className={tab === 'friends' ? 'active' : ''} onClick={() => setTab('friends')}>
-          👥 Amis {friends.size > 0 && <span className="badge">{friends.size}</span>}
-        </button>
-      </div>
+      {profile && (
+        <div className="admin-tabs">
+          <button className={tab === 'global' ? 'active' : ''} onClick={() => setTab('global')}>
+            🌍 Top 100
+          </button>
+          <button className={tab === 'friends' ? 'active' : ''} onClick={() => setTab('friends')}>
+            👥 Amis {friends.size > 0 && <span className="badge">{friends.size}</span>}
+          </button>
+        </div>
+      )}
 
       {tab === 'global' && (
         <input
@@ -161,7 +170,7 @@ export default function Leaderboard() {
               ? rows.findIndex((r) => r.id === row.id) + 1
               : i + 1
             const level = getLevel(row.elo)
-            const isMe = row.id === profile.id
+            const isMe = profile && row.id === profile.id
             const isFriend = friends.has(row.id)
 
             return (
@@ -185,7 +194,7 @@ export default function Leaderboard() {
                   <span className="elo-label">Popularité</span>
                 </div>
 
-                {!isMe && (
+                {profile && !isMe && (
                   isFriend ? (
                     <button className="friend-btn remove" onClick={() => removeFriend(row.id)}>
                       Retirer

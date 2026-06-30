@@ -3,11 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { getLevel } from '../lib/levels'
+import LevelProgress from '../components/LevelProgress'
+
+const STATUS_LABELS = {
+  pending:  { label: 'En attente de modération', className: 'pending' },
+  approved: { label: 'Approuvé', className: 'approved' },
+  rejected: { label: 'Refusé', className: 'rejected' },
+}
 
 export default function ProfilePage() {
   const { id } = useParams()
   const { profile: me } = useAuth()
   const navigate = useNavigate()
+
+  const viewingSelf = !!me && me.id === id
 
   const [profile, setProfile] = useState(null)
   const [program, setProgram] = useState(null)
@@ -16,32 +25,37 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function load() {
-      const [{ data: p }, { data: prog }, { data: f }] = await Promise.all([
+      let programQuery = supabase
+        .from('programs')
+        .select('status, rejection_reason, program_points(order, category, title)')
+        .eq('user_id', id)
+      // Sur un profil tiers, on ne montre que le programme approuvé.
+      if (!viewingSelf) programQuery = programQuery.eq('status', 'approved')
+
+      const [{ data: p }, { data: prog }] = await Promise.all([
         supabase
           .from('profiles')
           .select('id, username, avatar_url, slogan, elo, duels_played, duels_won, vote_points')
           .eq('id', id)
           .single(),
-        supabase
-          .from('programs')
-          .select('status, program_points(order, category, title)')
-          .eq('user_id', id)
-          .eq('status', 'approved')
-          .single(),
-        supabase
+        programQuery.single(),
+      ])
+      setProfile(p)
+      setProgram(prog)
+
+      if (me?.id && !viewingSelf) {
+        const { data: f } = await supabase
           .from('friendships')
           .select('friend_id')
           .eq('user_id', me.id)
           .eq('friend_id', id)
-          .maybeSingle(),
-      ])
-      setProfile(p)
-      setProgram(prog)
-      setIsFriend(!!f)
+          .maybeSingle()
+        setIsFriend(!!f)
+      }
       setLoading(false)
     }
     load()
-  }, [id, me.id])
+  }, [id, me?.id, viewingSelf])
 
   async function toggleFriend() {
     if (isFriend) {
@@ -57,7 +71,6 @@ export default function ProfilePage() {
   if (!profile) return <div className="profile-page"><p className="empty">Utilisateur introuvable.</p></div>
 
   const level = getLevel(profile.elo)
-  const isMe = profile.id === me.id
   const points = [...(program?.program_points ?? [])].sort((a, b) => a.order - b.order)
 
   return (
@@ -94,21 +107,58 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {!isMe && (
+        <div style={{ width: '100%', marginTop: 16 }}>
+          <LevelProgress elo={profile.elo} />
+        </div>
+
+        {me && !viewingSelf && (
           <button className="friend-toggle-btn" onClick={toggleFriend}>
             {isFriend ? '✓ Ami · Retirer' : '+ Ajouter en ami'}
           </button>
         )}
       </div>
 
+      {viewingSelf && program?.status === 'approved' && (
+        <button className="duel-btn" onClick={() => navigate('/duel')}>
+          ⚔️ Participer aux duels
+        </button>
+      )}
+
+      {viewingSelf && program?.status === 'rejected' && program.rejection_reason && (
+        <div className="rejection-banner">
+          <strong>Programme refusé —</strong> {program.rejection_reason}
+        </div>
+      )}
+
       <div className="section-header">
-        <h2>Son programme</h2>
+        <div className="accordion-title">
+          <h2>{viewingSelf ? 'Mon programme' : 'Son programme'}</h2>
+          {viewingSelf && program && (
+            <span className={`status-badge ${STATUS_LABELS[program.status].className}`}>
+              {STATUS_LABELS[program.status].label}
+            </span>
+          )}
+          {viewingSelf && program?.status === 'rejected' && (
+            <button className="edit-btn" onClick={() => navigate('/programme/modifier')}>
+              Modifier
+            </button>
+          )}
+        </div>
       </div>
 
       {!program ? (
-        <div className="no-program" style={{ padding: '32px' }}>
-          <p>Cet utilisateur n'a pas encore de programme approuvé.</p>
-        </div>
+        viewingSelf ? (
+          <div className="no-program" style={{ padding: '32px' }}>
+            <div className="no-program-icon">📋</div>
+            <h2>Aucun programme</h2>
+            <p>Présente tes 6 propositions et entre dans l'arène !</p>
+            <button onClick={() => navigate('/programme/creer')}>Rédiger mon programme</button>
+          </div>
+        ) : (
+          <div className="no-program" style={{ padding: '32px' }}>
+            <p>Cet utilisateur n'a pas encore de programme approuvé.</p>
+          </div>
+        )
       ) : (
         <div className="program-section">
           <ol className="points-list">
@@ -123,6 +173,12 @@ export default function ProfilePage() {
             ))}
           </ol>
         </div>
+      )}
+
+      {viewingSelf && me?.is_admin && (
+        <button className="admin-link" onClick={() => navigate('/admin')}>
+          🛡️ Panel de modération
+        </button>
       )}
     </div>
   )

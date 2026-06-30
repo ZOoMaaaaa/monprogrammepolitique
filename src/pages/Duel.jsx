@@ -8,7 +8,7 @@ import { CAT_COLORS } from '../lib/categories'
 const SIDE_COLOR = { left: 'var(--bleu)', right: 'var(--rouge)' }
 
 export default function Duel() {
-  const { profile, refreshProfile } = useAuth()
+  const { user, profile, refreshProfile, exitGuest } = useAuth()
   const navigate = useNavigate()
 
   const [pair, setPair] = useState(null)
@@ -18,16 +18,19 @@ export default function Duel() {
   const [voteError, setVoteError] = useState(null)
   const [exhausted, setExhausted] = useState(false)
   const resultRef = useRef(null)
+  const profileId = profile?.id
 
   const fetchPair = useCallback(async () => {
     setLoading(true)
     setResult(null)
 
-    const { data: programs } = await supabase
+    let query = supabase
       .from('programs')
       .select('id, user_id, profiles(username, slogan, elo, avatar_url), program_points(order, category, title, ai_context)')
       .eq('status', 'approved')
-      .neq('user_id', profile.id)
+    if (profileId) query = query.neq('user_id', profileId)
+
+    const { data: programs } = await query
 
     if (!programs || programs.length < 2) {
       setExhausted(true)
@@ -35,12 +38,14 @@ export default function Duel() {
       return
     }
 
-    const { data: voted } = await supabase
-      .from('duels')
-      .select('program_1_id, program_2_id')
-      .eq('voter_id', profile.id)
-
-    const votedSet = new Set((voted ?? []).map((d) => key(d.program_1_id, d.program_2_id)))
+    let votedSet = new Set()
+    if (profileId) {
+      const { data: voted } = await supabase
+        .from('duels')
+        .select('program_1_id, program_2_id')
+        .eq('voter_id', profileId)
+      votedSet = new Set((voted ?? []).map((d) => key(d.program_1_id, d.program_2_id)))
+    }
 
     const ids = programs.map((p) => p.id)
     const shuffled = ids.sort(() => Math.random() - 0.5)
@@ -64,7 +69,7 @@ export default function Duel() {
       setPair(found)
     }
     setLoading(false)
-  }, [profile.id])
+  }, [profileId])
 
   useEffect(() => { fetchPair() }, [fetchPair])
 
@@ -72,6 +77,14 @@ export default function Duel() {
     if (voting) return
     setVoting(true)
     setVoteError(null)
+
+    // Invité : le vote ne compte pas, on ne l'enregistre pas.
+    if (!user) {
+      setResult({ winnerId, guest: true })
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50)
+      setVoting(false)
+      return
+    }
 
     const [p1, p2] = pair
     const { data, error } = await supabase.rpc('record_duel', {
@@ -153,8 +166,23 @@ export default function Duel() {
 
       {result && (
         <div className="duel-result" ref={resultRef}>
-          <p>Vote enregistré ! <strong>±{result.eloChange} pts de popularité</strong> échangés.</p>
-          <button onClick={fetchPair}>Duel suivant →</button>
+          {result.guest ? (
+            <>
+              <p>
+                Merci pour ton vote ! En mode invité, il <strong>ne compte pas</strong>.
+                Inscris-toi pour peser sur les sondages et lancer ta propre campagne.
+              </p>
+              <div className="duel-result-actions">
+                <button onClick={exitGuest}>Créer un compte</button>
+                <button className="duel-result-secondary" onClick={fetchPair}>Duel suivant →</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>Vote enregistré ! <strong>±{result.eloChange} pts de popularité</strong> échangés.</p>
+              <button onClick={fetchPair}>Duel suivant →</button>
+            </>
+          )}
         </div>
       )}
     </div>

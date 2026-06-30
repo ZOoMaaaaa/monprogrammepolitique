@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
+  const { continueAsGuest } = useAuth()
   const [flipped, setFlipped] = useState(false)
   const [mode, setMode] = useState('login') // 'login' | 'register' | 'forgot'
   const [email, setEmail] = useState('')
@@ -55,8 +57,14 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError('Email ou mot de passe incorrect.')
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      const alreadyUsed =
+        (error && /already|exists|registered|déjà/i.test(error.message)) ||
+        (!error && data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+
+      if (alreadyUsed) {
+        setError('Cette adresse email est déjà utilisée. Connecte-toi ou réinitialise ton mot de passe.')
+      } else if (error) {
         setError(error.message)
       } else {
         setSuccess('Compte créé ! Tu peux maintenant te connecter.')
@@ -91,6 +99,9 @@ export default function Login() {
 
             <button className="login-cta" onClick={handleParticipe}>
               Je participe →
+            </button>
+            <button className="login-explore" onClick={continueAsGuest}>
+              Explorer sans inscription
             </button>
           </div>
 
