@@ -42,6 +42,16 @@ export default function Setup() {
 
   return (
     <div className="setup-page">
+      <div className="setup-topbar">
+        <button
+          type="button"
+          className="setup-logout"
+          onClick={() => supabase.auth.signOut()}
+        >
+          Déconnexion
+        </button>
+      </div>
+
       <h1>Crée ton profil de candidat</h1>
       <p>Tu n'as besoin de faire ça qu'une seule fois.</p>
 

@@ -591,10 +591,39 @@ p { margin: 0; }
 
 .setup-page h1 { font-size: 32px; }
 
+.setup-topbar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+.setup-logout {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.setup-logout:hover { background: var(--accent-bg); color: var(--text-h); }
+
 @media (max-width: 540px) {
-  .login-card { padding: 32px 24px 28px; gap: 20px; border-radius: 12px; }
-  .login-page h1 { font-size: 28px; }
+  .login-card { padding: 26px 22px 24px; gap: 14px; border-radius: 12px; }
+  .login-page h1 { font-size: 26px; }
   .login-page > .login-card > p { font-size: 13px; }
+
+  /* Face avant resserrée pour que tout (dont « Explorer sans inscription »)
+     tienne dans la hauteur de la carte flip et reste visible. Les accroches
+     décoratives sont masquées sur mobile (le titre + sous-titre + boutons
+     suffisent) pour ne pas dépendre des retours à la ligne. */
+  .login-front-label { font-size: 13px; letter-spacing: 1.5px; }
+  .login-front-title { font-size: 30px; }
+  .login-front-sub   { font-size: 14px; line-height: 1.5; }
+  .login-front-hooks { display: none; }
+  .login-cta     { padding: 13px; font-size: 16px; }
+  .login-explore { padding: 11px; font-size: 14px; margin-top: 8px; }
 }
 
 .login-tabs {
