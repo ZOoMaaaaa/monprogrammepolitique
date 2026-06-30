@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
   const { continueAsGuest } = useAuth()
+  const navigate = useNavigate()
   const [flipped, setFlipped] = useState(false)
   const [mode, setMode] = useState('login') // 'login' | 'register' | 'forgot'
   const [email, setEmail] = useState('')
@@ -21,6 +23,11 @@ export default function Login() {
 
   function handleParticipe() {
     setFlipped(true)
+  }
+
+  function handleExplore() {
+    navigate('/')
+    continueAsGuest()
   }
 
   async function handleSubmit(e) {
@@ -100,7 +107,7 @@ export default function Login() {
             <button className="login-cta" onClick={handleParticipe}>
               Je participe →
             </button>
-            <button className="login-explore" onClick={continueAsGuest}>
+            <button className="login-explore" onClick={handleExplore}>
               Explorer sans inscription
             </button>
           </div>
