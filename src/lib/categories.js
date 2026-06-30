@@ -15,6 +15,7 @@ export const CATEGORIES = [
   'Travail',
   'Culture',
   'Numérique',
+  'Démocratie',
 ]
 
 export const CAT_COLORS = {
@@ -31,6 +32,7 @@ export const CAT_COLORS = {
   'Travail':       '#84cc16',
   'Culture':       '#ec4899',
   'Numérique':     '#64748b',
+  'Démocratie':    '#dc2626',
 }
 
 // Nombre de réformes que compte un programme (indépendant du nombre de catégories).
