@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { getLevel } from '../lib/levels'
+import { CAT_COLORS } from '../lib/categories'
 
 const SIDE_COLOR = { left: 'var(--bleu)', right: 'var(--rouge)' }
 
@@ -180,15 +181,18 @@ function ProgramCard({ program, side, onVote, disabled, isWinner, isLoser }) {
       </div>
 
       <ul className="duel-points">
-        {points.map((pt) => (
-          <li key={pt.order} className="duel-point-row">
-            <span className="duel-cat-dot" style={{ background: color }} />
-            <div className="duel-point-text">
-              <span className="category" style={{ color }}>{pt.category}</span>
-              <span>{pt.title}</span>
-            </div>
-          </li>
-        ))}
+        {points.map((pt) => {
+          const catColor = CAT_COLORS[pt.category] ?? color
+          return (
+            <li key={pt.order} className="duel-point-row">
+              <span className="duel-cat-dot" style={{ background: catColor }} />
+              <div className="duel-point-text">
+                <span className="category" style={{ color: catColor }}>{pt.category}</span>
+                <span>{pt.title}</span>
+              </div>
+            </li>
+          )
+        })}
       </ul>
 
       <div className="duel-card-actions">
@@ -206,7 +210,7 @@ function ProgramCard({ program, side, onVote, disabled, isWinner, isLoser }) {
 
 function AiContext({ program }) {
   const points = [...(program.program_points ?? [])].sort((a, b) => a.order - b.order)
-  const spotlight = points.find((pt) => pt.ai_context)
+  const spotlight = points.find((pt) => pt.ai_context && pt.ai_context.trim() !== '')
   if (!spotlight) return <div className="ai-context-card ai-context-empty" />
   return (
     <div className="ai-context-card">

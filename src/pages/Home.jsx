@@ -3,20 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { getLevel, LEVELS } from '../lib/levels'
+import { CAT_COLORS } from '../lib/categories'
 
 const STATUS_LABELS = {
   pending:  { label: 'En attente de modération', className: 'pending' },
   approved: { label: 'Approuvé', className: 'approved' },
   rejected: { label: 'Refusé', className: 'rejected' },
-}
-
-const CAT_COLORS = {
-  'Économie':      '#f59e0b',
-  'Éducation':     '#3b82f6',
-  'Environnement': '#16a34a',
-  'Santé':         '#e11d48',
-  'Sécurité':      '#6366f1',
-  'Société':       '#0891b2',
 }
 
 function LevelProgress({ elo }) {

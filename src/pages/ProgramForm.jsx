@@ -2,17 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-
-const CATEGORIES = ['Économie', 'Éducation', 'Environnement', 'Santé', 'Sécurité', 'Société']
-
-const CAT_COLORS = {
-  'Économie':      '#f59e0b',
-  'Éducation':     '#3b82f6',
-  'Environnement': '#16a34a',
-  'Santé':         '#e11d48',
-  'Sécurité':      '#6366f1',
-  'Société':       '#0891b2',
-}
+import { CATEGORIES, POINT_COUNT } from '../lib/categories'
 
 const PLACEHOLDERS = [
   'ex : Revaloriser le SMIC de 15% d\'ici 2026',
@@ -25,7 +15,7 @@ const PLACEHOLDERS = [
 
 const emptyPoint = (order) => ({
   order,
-  category: CATEGORIES[order - 1],
+  category: CATEGORIES[(order - 1) % CATEGORIES.length],
   title: '',
 })
 
@@ -33,7 +23,9 @@ export default function ProgramForm() {
   const { profile } = useAuth()
   const navigate = useNavigate()
 
-  const [points, setPoints] = useState(CATEGORIES.map((_, i) => emptyPoint(i + 1)))
+  const [points, setPoints] = useState(
+    Array.from({ length: POINT_COUNT }, (_, i) => emptyPoint(i + 1))
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [existingProgramId, setExistingProgramId] = useState(null)
@@ -153,7 +145,7 @@ export default function ProgramForm() {
 
       <form onSubmit={handleSubmit}>
         <div className="points-questionnaire">
-          {points.map((pt, i) => (
+          {points.map((pt) => (
             <div key={pt.order} className="point-q">
               <div className="point-q-label">
                 <span className="point-q-num">

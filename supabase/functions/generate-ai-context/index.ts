@@ -54,20 +54,24 @@ serve(async (req) => {
     const results = []
 
     for (const point of points) {
-      const prompt = `Voici une proposition de réforme politique en France.\nCatégorie : ${point.category}\nProposition : "${point.title}"\n\nEn 2 phrases maximum, cite un exemple concret d'un pays qui a mis en place une mesure similaire et ce qu'il s'est passé (succès, nuances, résultats). Si aucun exemple précis n'existe, dis-le brièvement. Sois factuel, neutre et précis. Réponds en français.`
+      const prompt = `Voici une proposition de réforme politique en France.\nCatégorie : ${point.category}\nProposition : "${point.title}"\n\nEn 2 phrases maximum, cite un exemple concret d'un pays qui a mis en place une mesure similaire et ce qu'il s'est passé (succès, nuances, résultats). Sois factuel, neutre et précis. Réponds en français.\nSi aucun exemple concret et vérifiable n'existe, réponds EXACTEMENT par le mot NONE (en majuscules, sans rien d'autre).`
 
       const text = await callGroq(GROQ_KEY, prompt)
 
-      if (text) {
-        const { error: updateError } = await supabase
-          .from('program_points')
-          .update({ ai_context: text })
-          .eq('id', point.id)
-
-        results.push({ id: point.id, ok: !updateError, error: updateError?.message })
-      } else {
+      if (text === null) {
         results.push({ id: point.id, error: 'Pas de réponse Groq' })
+        continue
       }
+
+      const cleaned = text.trim()
+      const hasExample = cleaned !== '' && !/^['"]?none\b/i.test(cleaned)
+
+      const { error: updateError } = await supabase
+        .from('program_points')
+        .update({ ai_context: hasExample ? cleaned : null })
+        .eq('id', point.id)
+
+      results.push({ id: point.id, ok: !updateError, hasExample, error: updateError?.message })
     }
 
     return new Response(JSON.stringify({ results }), {
