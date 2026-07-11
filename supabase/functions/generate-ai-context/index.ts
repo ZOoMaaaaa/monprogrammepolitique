@@ -3,6 +3,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
+// Sans ces en-têtes, l'appel depuis le navigateur (page Admin) échoue au
+// preflight CORS et le contexte IA n'est jamais généré. Le script Node de
+// backfill n'est pas concerné (pas de preflight hors navigateur).
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+
 async function callGroq(key: string, prompt: string, attempt = 0): Promise<string | null> {
   const res = await fetch(GROQ_URL, {
     method: 'POST',
@@ -36,12 +47,16 @@ async function callGroq(key: string, prompt: string, attempt = 0): Promise<strin
 }
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     const { program_id } = await req.json()
 
     const GROQ_KEY = Deno.env.get('GROQ_API_KEY')
     if (!GROQ_KEY) {
-      return new Response(JSON.stringify({ error: 'GROQ_API_KEY manquant' }), { status: 500 })
+      return new Response(JSON.stringify({ error: 'GROQ_API_KEY manquant' }), { status: 500, headers: jsonHeaders })
     }
 
     const supabase = createClient(
@@ -55,7 +70,7 @@ serve(async (req) => {
       .eq('program_id', program_id)
 
     if (error || !points?.length) {
-      return new Response(JSON.stringify({ error: 'Points not found', detail: error }), { status: 400 })
+      return new Response(JSON.stringify({ error: 'Points not found', detail: error }), { status: 400, headers: jsonHeaders })
     }
 
     const results = []
@@ -81,10 +96,8 @@ serve(async (req) => {
       results.push({ id: point.id, ok: !updateError, hasExample, error: updateError?.message })
     }
 
-    return new Response(JSON.stringify({ results }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return new Response(JSON.stringify({ results }), { headers: jsonHeaders })
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 })
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: jsonHeaders })
   }
 })
