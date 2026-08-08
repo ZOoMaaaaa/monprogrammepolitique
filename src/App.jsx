@@ -16,10 +16,33 @@ import ResetPassword from './pages/ResetPassword'
 import RulesPage from './pages/RulesPage'
 import CookieBanner from './components/CookieBanner'
 
-function AppRoutes() {
-  const { user, profile, loading, isRecovery, guest } = useAuth()
+function BootScreen() {
+  return (
+    <div className="boot-screen">
+      <div className="boot-spinner" />
+      <p>Chargement…</p>
+    </div>
+  )
+}
 
-  if (loading) return null
+function ProfileErrorScreen({ message, onRetry, onSignOut }) {
+  return (
+    <div className="boot-screen">
+      <h1>Connexion impossible</h1>
+      <p>Ton compte est bien reconnu, mais ton profil n'a pas pu être chargé.</p>
+      {message && <p className="boot-error">{message}</p>}
+      <div className="boot-actions">
+        <button type="button" className="btn-primary" onClick={onRetry}>Réessayer</button>
+        <button type="button" className="btn-ghost" onClick={onSignOut}>Se déconnecter</button>
+      </div>
+    </div>
+  )
+}
+
+function AppRoutes() {
+  const { user, profile, booting, profileError, refreshProfile, signOut, isRecovery, guest } = useAuth()
+
+  if (booting) return <BootScreen />
 
   if (isRecovery) {
     return <ResetPassword />
@@ -59,6 +82,18 @@ function AppRoutes() {
         </main>
         <Footer />
       </div>
+    )
+  }
+
+  // Utilisateur connecté mais profil illisible (réseau, RLS, ligne manquante) :
+  // surtout ne pas l'envoyer vers Setup, qui échouerait silencieusement.
+  if (!profile) {
+    return (
+      <ProfileErrorScreen
+        message={profileError}
+        onRetry={refreshProfile}
+        onSignOut={signOut}
+      />
     )
   }
 

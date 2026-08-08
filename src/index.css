@@ -91,6 +91,53 @@ body::before {
   padding: 48px 20px 64px;
 }
 
+/* ── Écran de démarrage / erreur de profil ── */
+.boot-screen {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text);
+}
+
+.boot-screen h1 {
+  font-family: var(--heading);
+  font-size: 26px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.boot-screen p { margin: 0; font-size: 15px; max-width: 420px; }
+.boot-error { color: var(--rouge); font-size: 13px; }
+
+.boot-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--bleu);
+  border-bottom-color: var(--rouge);
+  animation: boot-spin 0.9s linear infinite;
+}
+
+.boot-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-spinner { animation-duration: 2.4s; }
+}
+
 /* ── Navbar ── */
 .navbar {
   position: sticky;
