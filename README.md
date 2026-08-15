@@ -2,7 +2,7 @@
 
 > Plateforme web civique et ludique : chaque citoyen construit **son propre programme politique**, puis les programmes s'affrontent en **duels** notés par la communauté. Classement, niveaux et profils publics à la clé.
 
-> 🔗 Démo en ligne : _à venir_
+> 🔗 **[Démo en ligne](https://monprogrammepolitique.vercel.app)**
 
 ---
 
